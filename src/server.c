@@ -16,6 +16,9 @@
 #include"parser.h"
 #include"constants.h"
 
+/**
+ * Sets up the TCP socket with the given `port` and starts listening for active connections
+ */
 int s_socket_setup(int port) {
   int sfd;
   struct sockaddr_in addr;
@@ -46,6 +49,9 @@ int s_socket_setup(int port) {
   return sfd;
 }
 
+/**
+ * Initializes epoll and binds it to the given socket
+ */
 int s_epoll_setup(int sfd) {
   struct epoll_event event;
   int epoll_fd = epoll_create1(0);
@@ -137,12 +143,14 @@ void s_handle_connection(int epoll_fd, int sfd, player_t **player_list) {
 
 void s_handle_client(int epoll_fd, int cfd, player_t **player_list) {
   player_t *player = find_player(*player_list, cfd);
+
   if (!player) {
     fprintf(stderr, "No player found for fd=%d\n", cfd);
     epoll_ctl(epoll_fd, EPOLL_CTL_DEL, cfd, NULL);
     close(cfd);
     return;
   }
+
   if (player->disconnected == 1) {
     if (player->registered == 1) {
       char gg_msg[30];
@@ -156,6 +164,7 @@ void s_handle_client(int epoll_fd, int cfd, player_t **player_list) {
   char read_buf[MAX_MSG_LEN];
   ssize_t bytes_read = read(cfd, read_buf, sizeof(read_buf));
 
+  // assume failure if no input
   if (bytes_read <= 0) {
     if (bytes_read == 0) {
       fprintf(stderr, "Client fd=%d disconnected\n", cfd);
@@ -175,6 +184,7 @@ void s_handle_client(int epoll_fd, int cfd, player_t **player_list) {
     return;
   }
 
+  // remove player if buffer overflows
   if (append_b(&player->buffer, read_buf, (size_t)bytes_read) > 0 ||
       (player->buffer.size == MAX_MSG_LEN && is_ready(&player->buffer) < 0)) {
     fprintf(stderr, "Client %d buffer overflow. Disconnecting...\n", cfd);

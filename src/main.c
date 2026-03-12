@@ -9,11 +9,13 @@ int main(int argc, char **argv) {
   int sfd;
   int port;
 
+  // check for required argument
   if (argc != 2) {
     fprintf(stderr, "One positional argment expected; none given\n");
     exit(1);
   }
 
+  // asserts valid port number
   port = atoi(argv[1]);
   if (port <= 1024 || port > 65535) {
     fprintf(stderr, "main: invalid port: %d\n", port);

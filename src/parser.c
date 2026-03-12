@@ -134,4 +134,3 @@ void bomb_player(player_t *player, command_t cmd, player_t *player_list, int epo
 
   cleanup_players(&player_list, epoll_fd);
 }
-
